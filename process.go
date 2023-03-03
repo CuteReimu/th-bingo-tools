@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"golang.org/x/sys/windows"
 	"log"
 	"os/exec"
@@ -17,6 +18,9 @@ func getPidByProcessName(processName string) (int64, error) {
 	data, _ := task.CombinedOutput()
 	res := strings.Split(string(data), "\n")[0] //取第一行程序结果
 	ss := regexp.MustCompile(`\s+`).Split(res, -1)
+	if len(ss) < 2 {
+		return 0, errors.New("没有找到进程")
+	}
 	pidStr := ss[1]
 	return strconv.ParseInt(pidStr, 10, 64)
 }

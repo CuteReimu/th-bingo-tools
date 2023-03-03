@@ -10,7 +10,7 @@ import (
 
 type ListenerTh18 struct {
 	started   bool
-	roleInfos [5]roleInfo
+	roleInfos [4]roleInfo
 }
 
 func (l *ListenerTh18) Loop() {
@@ -30,7 +30,11 @@ func (l *ListenerTh18) Loop() {
 		return
 	}
 	oldInfos := l.roleInfos
-	_, l.roleInfos = readMemory[[5]roleInfo](hand, baseAddress, 0xCF41C, 8)
+	l.roleInfos = [4]roleInfo{}
+	for i := range l.roleInfos {
+		_, l.roleInfos[i].id = readMemory[uint32](hand, baseAddress, 0xCF41C, 20+0x130F0*uintptr(i))
+		_, l.roleInfos[i].spells = readMemory[[97]spellInfo](hand, baseAddress, 0xCF41C, 0x8D8+0x130F0*uintptr(i))
+	}
 	if !l.started {
 		l.started = true
 		return
@@ -41,70 +45,78 @@ func (l *ListenerTh18) Loop() {
 		for j, info := range role.spells {
 			oldInfo := oldInfos[i].spells[j]
 			spellPracticeGet, spellPracticeTotal, gameModeGet, gameModeTotal := oldInfo.spellPracticeGet, oldInfo.spellPracticeTotal, oldInfo.gameModeGet, oldInfo.gameModeTotal
-			for {
-				spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
-				if spellPracticeTotal2 > spellPracticeTotal {
-					buf, _ := json.Marshal(&Message{
-						Game:  18,
-						Id:    info.id + 1,
-						Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
-						Event: 0,
-						Mode:  1,
-						Role:  roleName,
-						Rank:  formatRank(info.rank),
-					})
-					fmt.Println(string(buf))
-				}
-				if spellPracticeGet2 > spellPracticeGet {
-					buf, _ := json.Marshal(&Message{
-						Game:  18,
-						Id:    info.id + 1,
-						Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
-						Event: 1,
-						Mode:  1,
-						Role:  roleName,
-						Rank:  formatRank(info.rank),
-					})
-					fmt.Println(string(buf))
-				}
-				if gameModeTotal2 > gameModeTotal {
-					buf, _ := json.Marshal(&Message{
-						Game:  18,
-						Id:    info.id + 1,
-						Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
-						Event: 0,
-						Mode:  0,
-						Role:  roleName,
-						Rank:  formatRank(info.rank),
-					})
-					fmt.Println(string(buf))
-				}
-				if gameModeGet2 > gameModeGet {
-					buf, _ := json.Marshal(&Message{
-						Game:  18,
-						Id:    info.id + 1,
-						Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
-						Event: 1,
-						Mode:  0,
-						Role:  roleName,
-						Rank:  formatRank(info.rank),
-					})
-					fmt.Println(string(buf))
-				}
+			spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
+			if spellPracticeTotal2 > spellPracticeTotal {
+				buf, _ := json.Marshal(&Message{
+					Game:  18,
+					Id:    info.id + 1,
+					Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
+					Event: 0,
+					Mode:  1,
+					Role:  roleName,
+					Rank:  formatRank(info.rank),
+				})
+				fmt.Println(string(buf))
+				chanMap.Range(func(_, value any) bool {
+					value.(chan []byte) <- buf
+					return true
+				})
+			}
+			if spellPracticeGet2 > spellPracticeGet {
+				buf, _ := json.Marshal(&Message{
+					Game:  18,
+					Id:    info.id + 1,
+					Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
+					Event: 1,
+					Mode:  1,
+					Role:  roleName,
+					Rank:  formatRank(info.rank),
+				})
+				fmt.Println(string(buf))
+				chanMap.Range(func(_, value any) bool {
+					value.(chan []byte) <- buf
+					return true
+				})
+			}
+			if gameModeTotal2 > gameModeTotal {
+				buf, _ := json.Marshal(&Message{
+					Game:  18,
+					Id:    info.id + 1,
+					Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
+					Event: 0,
+					Mode:  0,
+					Role:  roleName,
+					Rank:  formatRank(info.rank),
+				})
+				fmt.Println(string(buf))
+				chanMap.Range(func(_, value any) bool {
+					value.(chan []byte) <- buf
+					return true
+				})
+			}
+			if gameModeGet2 > gameModeGet {
+				buf, _ := json.Marshal(&Message{
+					Game:  18,
+					Id:    info.id + 1,
+					Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
+					Event: 1,
+					Mode:  0,
+					Role:  roleName,
+					Rank:  formatRank(info.rank),
+				})
+				fmt.Println(string(buf))
+				chanMap.Range(func(_, value any) bool {
+					value.(chan []byte) <- buf
+					return true
+				})
 			}
 		}
 	}
 }
 
 type roleInfo struct {
-	_         uint32
-	totalTime uint16
-	_         uint16
-	_         uint32
-	id        uint32
-	_         [0x8C0]byte
-	spells    [97]spellInfo
-	_         [0xD4C4]byte
+	id     uint32
+	spells [97]spellInfo
 }
 
 type spellInfo struct {

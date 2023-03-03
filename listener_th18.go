@@ -121,15 +121,15 @@ type spellInfo struct {
 func formatRoleId(id uint32) string {
 	switch id {
 	case 0:
-		return "灵梦"
+		return "Reimu"
 	case 1:
-		return "魔理沙"
+		return "Marisa"
 	case 2:
-		return "咲夜"
+		return "Sakuya"
 	case 3:
-		return "早苗"
+		return "Sanae"
 	default:
-		return "未知"
+		return "Unknown"
 	}
 }
 

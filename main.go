@@ -16,7 +16,7 @@ func main() {
 		go func() {
 			for {
 				l.Loop()
-				time.Sleep(time.Second)
+				time.Sleep(100 * time.Millisecond)
 			}
 		}()
 	}

@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-type listenerTh18 struct {
+type listenerTh17 struct {
 	started      bool
-	roleInfos    [4]th18RoleInfo
-	oldRoleInfos [4]th18RoleInfo
+	roleInfos    [9]th17RoleInfo
+	oldRoleInfos [9]th17RoleInfo
 }
 
-func (l *listenerTh18) Loop() {
-	pid, err := getPidByProcessName("th18.exe")
+func (l *listenerTh17) Loop() {
+	pid, err := getPidByProcessName("th17.exe")
 	if err != nil {
 		l.started = false
 		return
@@ -23,15 +23,15 @@ func (l *listenerTh18) Loop() {
 		l.started = false
 		return
 	}
-	baseAddress, err := getModuleBaseAddress(hand, "th18.exe")
+	baseAddress, err := getModuleBaseAddress(hand, "th17.exe")
 	if err != nil {
 		l.started = false
 		return
 	}
 	l.oldRoleInfos = l.roleInfos
 	for i := range l.roleInfos {
-		_, l.roleInfos[i].id = readMemory[uint32](hand, baseAddress, 0xCF41C, 20+0x130F0*uintptr(i))
-		_, l.roleInfos[i].spells = readMemory[[97]th18SpellInfo](hand, baseAddress, 0xCF41C, 0x8D8+0x130F0*uintptr(i))
+		_, l.roleInfos[i].id = readMemory[uint32](hand, baseAddress, 0xB77DC, 20+0x4820*uintptr(i))
+		_, l.roleInfos[i].spells = readMemory[[101]th17SpellInfo](hand, baseAddress, 0xB77DC, 0x8D8+0x4820*uintptr(i)) // i = 4  0x12958
 	}
 	if !l.started {
 		l.started = true
@@ -45,7 +45,7 @@ func (l *listenerTh18) Loop() {
 			spellPracticeGet, spellPracticeTotal, gameModeGet, gameModeTotal := oldInfo.spellPracticeGet, oldInfo.spellPracticeTotal, oldInfo.gameModeGet, oldInfo.gameModeTotal
 			spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
 			message := &Message{
-				Game: 18,
+				Game: 17,
 				Id:   info.id + 1,
 				Name: formatName(bytes.TrimRight(info.name[:], "\000")),
 				Role: roleName,
@@ -95,28 +95,38 @@ func (l *listenerTh18) Loop() {
 	}
 }
 
-type th18RoleInfo struct {
+type th17RoleInfo struct {
 	id     uint32
-	spells [97]th18SpellInfo
+	spells [101]th17SpellInfo
 }
 
-func (info *th18RoleInfo) formatRoleId() string {
+func (info *th17RoleInfo) formatRoleId() string {
 	switch info.id {
 	case 0:
-		return "Reimu"
+		return "ReimuW"
 	case 1:
-		return "Marisa"
+		return "ReimuO"
 	case 2:
-		return "Sakuya"
+		return "ReimuE"
 	case 3:
-		return "Sanae"
+		return "MarisaW"
+	case 4:
+		return "MarisaO"
+	case 5:
+		return "MarisaE"
+	case 6:
+		return "YoumuW"
+	case 7:
+		return "YoumuO"
+	case 8:
+		return "YoumuE"
 	default:
 		return "Unknown"
 	}
 }
 
-type th18SpellInfo struct {
-	name               [0xC0]byte
+type th17SpellInfo struct {
+	name               [0x80]byte
 	gameModeGet        uint32
 	spellPracticeGet   uint32
 	gameModeTotal      uint32

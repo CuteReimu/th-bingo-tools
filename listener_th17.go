@@ -45,11 +45,12 @@ func (l *listenerTh17) Loop() {
 			spellPracticeGet, spellPracticeTotal, gameModeGet, gameModeTotal := oldInfo.spellPracticeGet, oldInfo.spellPracticeTotal, oldInfo.gameModeGet, oldInfo.gameModeTotal
 			spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
 			message := &Message{
-				Game: 17,
-				Id:   info.id + 1,
-				Name: formatName(bytes.TrimRight(info.name[:], "\000")),
-				Role: roleName,
-				Rank: formatRank(info.rank),
+				Game:  17,
+				Id:    info.id + 1,
+				Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
+				Role:  roleName,
+				Rank:  formatRank(info.rank),
+				Score: uint64(info.score) * 10,
 			}
 			if spellPracticeTotal2 > spellPracticeTotal {
 				message.Event = 0

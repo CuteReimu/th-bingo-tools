@@ -28,7 +28,8 @@ go build -o th-bingo-tools.exe
   "event": 1,
   "mode": 1,
   "role": "Reimu",
-  "rank": "L"
+  "rank": "L",
+  "score": 123450
 }
 ```
 
@@ -43,6 +44,7 @@ go build -o th-bingo-tools.exe
 | mode  | int | 0-游戏模式或Practice Start<br/>1-Spell Practice |
 | role  | str | 角色的英文名（见下方表格）                              |
 | rank  | str | 难度（E、N、H、L、EX、PH）                          | 
+| score | int | 符卡最高分数，一般只有Spell Practice才有，没有分数则没有此字段     | 
 
 角色的英文名：（对于有不同子机的作品，在英文名后加字母表示，例如：ReimuA、SakuyaB。特别地，天空璋仍用ABCD表示四个子机，鬼形兽用WOE三个字母表示三个支援。）
 

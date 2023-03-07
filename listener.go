@@ -13,6 +13,7 @@ type Message struct {
 	Mode  uint8  `json:"mode"`
 	Role  string `json:"role"`
 	Rank  string `json:"rank"`
+	Score uint64 `json:"score,omitempty"`
 }
 
 type listener interface {

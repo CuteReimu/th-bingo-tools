@@ -1,16 +1,26 @@
 package main
 
 import (
+	"flag"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
 
+var port = flag.Int("p", 9760, "websocket listening port")
+
 var chanMap sync.Map
 
 func main() {
+	flag.Parse()
+	if !flag.Parsed() {
+		flag.Usage()
+		os.Exit(-1)
+	}
 	for i := range listeners {
 		l := listeners[i]
 		go func() {
@@ -45,7 +55,7 @@ func main() {
 			}
 		}
 	})
-	if err := http.ListenAndServe("127.0.0.1:9961", nil); err != nil {
+	if err := http.ListenAndServe("127.0.0.1:"+strconv.Itoa(*port), nil); err != nil {
 		log.Println(err)
 	}
 }

@@ -38,13 +38,14 @@ func (l *listenerTh18) Loop() {
 		return
 	}
 	l.started = true
+	var message *Message
 	for i, role := range l.roleInfos {
 		roleName := role.formatRoleId()
 		for j, info := range role.spells {
 			oldInfo := l.oldRoleInfos[i].spells[j]
 			spellPracticeGet, spellPracticeTotal, gameModeGet, gameModeTotal := oldInfo.spellPracticeGet, oldInfo.spellPracticeTotal, oldInfo.gameModeGet, oldInfo.gameModeTotal
 			spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
-			message := &Message{
+			msg := &Message{
 				Game:  18,
 				Id:    info.id + 1,
 				Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
@@ -53,46 +54,46 @@ func (l *listenerTh18) Loop() {
 				Score: uint64(info.score) * 10,
 			}
 			if spellPracticeTotal2 > spellPracticeTotal {
-				message.Event = 0
-				message.Mode = 1
-				buf, _ := json.Marshal(message)
-				fmt.Println(string(buf))
-				chanMap.Range(func(_, value any) bool {
-					value.(chan []byte) <- buf
-					return true
-				})
+				if message != nil || spellPracticeTotal2 != spellPracticeTotal+1 {
+					return // 同一时间只可能改变一张符卡
+				}
+				msg.Event = 0
+				msg.Mode = 1
+				message = msg
 			}
 			if spellPracticeGet2 > spellPracticeGet {
+				if message != nil || spellPracticeGet2 != spellPracticeGet+1 {
+					return // 同一时间只可能改变一张符卡
+				}
 				message.Event = 1
 				message.Mode = 1
-				buf, _ := json.Marshal(message)
-				fmt.Println(string(buf))
-				chanMap.Range(func(_, value any) bool {
-					value.(chan []byte) <- buf
-					return true
-				})
+				message = msg
 			}
 			if gameModeTotal2 > gameModeTotal {
+				if message != nil || gameModeTotal2 != gameModeTotal+1 {
+					return // 同一时间只可能改变一张符卡
+				}
 				message.Event = 0
 				message.Mode = 0
-				buf, _ := json.Marshal(message)
-				fmt.Println(string(buf))
-				chanMap.Range(func(_, value any) bool {
-					value.(chan []byte) <- buf
-					return true
-				})
+				message = msg
 			}
 			if gameModeGet2 > gameModeGet {
+				if message != nil || gameModeGet2 != gameModeGet+1 {
+					return // 同一时间只可能改变一张符卡
+				}
 				message.Event = 1
 				message.Mode = 0
-				buf, _ := json.Marshal(message)
-				fmt.Println(string(buf))
-				chanMap.Range(func(_, value any) bool {
-					value.(chan []byte) <- buf
-					return true
-				})
+				message = msg
 			}
 		}
+	}
+	if message != nil {
+		buf, _ := json.Marshal(message)
+		fmt.Println(string(buf))
+		chanMap.Range(func(_, value any) bool {
+			value.(chan []byte) <- buf
+			return true
+		})
 	}
 }
 

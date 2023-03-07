@@ -30,8 +30,8 @@ func (l *listenerTh17) Loop() {
 	}
 	l.oldRoleInfos = l.roleInfos
 	for i := range l.roleInfos {
-		_, l.roleInfos[i].id = readMemory[uint32](hand, baseAddress, 0xB77DC, 20+0x4820*uintptr(i))
-		_, l.roleInfos[i].spells = readMemory[[101]th17SpellInfo](hand, baseAddress, 0xB77DC, 0x8D8+0x4820*uintptr(i)) // i = 4  0x12958
+		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0xB77DC, 20+0x4820*uintptr(i))
+		_ = readMemory(&l.roleInfos[i].spells, hand, baseAddress, 0xB77DC, 0x8D8+0x4820*uintptr(i))
 	}
 	if !l.started {
 		l.started = true

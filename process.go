@@ -57,19 +57,19 @@ func getModuleBaseAddress(hand windows.Handle, processName string) (uintptr, err
 }
 
 // 通过基址+指针链读取到指针地址的值
-func readMemory[T any](handle windows.Handle, baseAddress uintptr, addrLinks ...uintptr) (addr uintptr, value T) {
-	addr = baseAddress
+func readMemory[T any](out *T, handle windows.Handle, baseAddress uintptr, addrLinks ...uintptr) uintptr {
+	addr := baseAddress
 	for _, x := range addrLinks[:len(addrLinks)-1] {
 		var tmp64 uint32
 		addr += x
 		if err := windows.ReadProcessMemory(handle, addr, (*byte)(unsafe.Pointer(&tmp64)), unsafe.Sizeof(tmp64), nil); err != nil {
-			return 0, value
+			return 0
 		}
 		addr = uintptr(tmp64)
 	}
 	addr += addrLinks[len(addrLinks)-1]
-	if err := windows.ReadProcessMemory(handle, addr, (*byte)(unsafe.Pointer(&value)), unsafe.Sizeof(value), nil); err != nil {
-		return 0, value
+	if err := windows.ReadProcessMemory(handle, addr, (*byte)(unsafe.Pointer(out)), unsafe.Sizeof(*out), nil); err != nil {
+		return 0
 	}
-	return addr, value
+	return addr
 }

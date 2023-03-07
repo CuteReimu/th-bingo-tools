@@ -1,5 +1,10 @@
 # th-bingo-tools
 
+![](https://img.shields.io/github/go-mod/go-version/CuteReimu/th-bingo-tools "语言")
+[![](https://img.shields.io/github/actions/workflow/status/CuteReimu/th-bingo-tools/golangci-lint.yml?branch=master)](https://github.com/CuteReimu/th-bingo-tools/actions/workflows/golangci-lint.yml "代码分析")
+[![](https://img.shields.io/github/contributors/CuteReimu/th-bingo-tools)](https://github.com/CuteReimu/th-bingo-tools/graphs/contributors "贡献者")
+[![](https://img.shields.io/github/license/CuteReimu/th-bingo-tools)](https://github.com/CuteReimu/th-bingo-tools/blob/master/LICENSE "许可协议")
+
 请配合 [th-bingo服务端](https://github.com/CuteReimu/th-bingo) 和 [th-bingo客户端](https://github.com/Death-alter/th-bingo) 食用
 
 **目前只有Windows版本**

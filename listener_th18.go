@@ -65,24 +65,24 @@ func (l *listenerTh18) Loop() {
 				if message != nil || spellPracticeGet2 != spellPracticeGet+1 {
 					return // 同一时间只可能改变一张符卡
 				}
-				message.Event = 1
-				message.Mode = 1
+				msg.Event = 1
+				msg.Mode = 1
 				message = msg
 			}
 			if gameModeTotal2 > gameModeTotal {
 				if message != nil || gameModeTotal2 != gameModeTotal+1 {
 					return // 同一时间只可能改变一张符卡
 				}
-				message.Event = 0
-				message.Mode = 0
+				msg.Event = 0
+				msg.Mode = 0
 				message = msg
 			}
 			if gameModeGet2 > gameModeGet {
 				if message != nil || gameModeGet2 != gameModeGet+1 {
 					return // 同一时间只可能改变一张符卡
 				}
-				message.Event = 1
-				message.Mode = 0
+				msg.Event = 1
+				msg.Mode = 0
 				message = msg
 			}
 		}

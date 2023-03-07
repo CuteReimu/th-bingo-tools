@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-type listenerTh17 struct {
+type listenerTh13 struct {
 	started      bool
-	roleInfos    [9]th17RoleInfo
-	oldRoleInfos [9]th17RoleInfo
+	roleInfos    [4]th13RoleInfo
+	oldRoleInfos [4]th13RoleInfo
 }
 
-func (l *listenerTh17) Loop() {
-	pid, err := getPidByProcessName("th17.exe")
+func (l *listenerTh13) Loop() {
+	pid, err := getPidByProcessName("th13.exe")
 	if err != nil {
 		l.started = false
 		return
@@ -23,15 +23,15 @@ func (l *listenerTh17) Loop() {
 		l.started = false
 		return
 	}
-	baseAddress, err := getModuleBaseAddress(hand, "th17.exe")
+	baseAddress, err := getModuleBaseAddress(hand, "th13.exe")
 	if err != nil {
 		l.started = false
 		return
 	}
 	l.oldRoleInfos = l.roleInfos
 	for i := range l.roleInfos {
-		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0xB77DC, 20+0x4820*uintptr(i))
-		_ = readMemory(&l.roleInfos[i].spells, hand, baseAddress, 0xB77DC, 0x8D8+0x4820*uintptr(i))
+		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0xC22CC, 20+0x56DC*uintptr(i))
+		_ = readMemory(&l.roleInfos[i].spells, hand, baseAddress, 0xC22CC, 0x980+0x56DC*uintptr(i))
 	}
 	if !l.started {
 		l.started = true
@@ -46,7 +46,7 @@ func (l *listenerTh17) Loop() {
 			spellPracticeGet, spellPracticeTotal, gameModeGet, gameModeTotal := oldInfo.spellPracticeGet, oldInfo.spellPracticeTotal, oldInfo.gameModeGet, oldInfo.gameModeTotal
 			spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
 			msg := &Message{
-				Game:  17,
+				Game:  13,
 				Id:    info.id + 1,
 				Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
 				Role:  roleName,
@@ -97,37 +97,27 @@ func (l *listenerTh17) Loop() {
 	}
 }
 
-type th17RoleInfo struct {
+type th13RoleInfo struct {
 	id     uint32
-	spells [101]th17SpellInfo
+	spells [119]th13SpellInfo
 }
 
-func (info *th17RoleInfo) formatRoleId() string {
+func (info *th13RoleInfo) formatRoleId() string {
 	switch info.id {
 	case 0:
-		return "ReimuW"
+		return "Reimu"
 	case 1:
-		return "ReimuO"
+		return "Marisa"
 	case 2:
-		return "ReimuE"
+		return "Sanae"
 	case 3:
-		return "MarisaW"
-	case 4:
-		return "MarisaO"
-	case 5:
-		return "MarisaE"
-	case 6:
-		return "YoumuW"
-	case 7:
-		return "YoumuO"
-	case 8:
-		return "YoumuE"
+		return "Youmu"
 	default:
 		return "Unknown"
 	}
 }
 
-type th17SpellInfo struct {
+type th13SpellInfo struct {
 	name               [0x80]byte
 	gameModeGet        uint32
 	spellPracticeGet   uint32

@@ -34,6 +34,11 @@ func main() {
 	for i := range listeners {
 		l := listeners[i]
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Printf("%+v\n", r)
+				}
+			}()
 			for {
 				l.Loop()
 				time.Sleep(100 * time.Millisecond)

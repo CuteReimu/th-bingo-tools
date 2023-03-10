@@ -73,3 +73,9 @@ func readMemory[T any](out *T, handle windows.Handle, baseAddress uintptr, addrL
 	}
 	return addr
 }
+
+// 获取屏幕分辨率，参数传0是宽，1是高
+func getSystemMetrics(nIndex int) int {
+	ret, _, _ := syscall.NewLazyDLL(`User32.dll`).NewProc(`GetSystemMetrics`).Call(uintptr(nIndex))
+	return int(ret)
+}

@@ -55,6 +55,7 @@ func main() {
 			}
 		}
 	})
+	new(gui).init()
 	if err := http.ListenAndServe("127.0.0.1:"+strconv.Itoa(*port), nil); err != nil {
 		log.Println(err)
 	}

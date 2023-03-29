@@ -21,6 +21,9 @@ type listener interface {
 }
 
 var listeners = []listener{
+	&listenerTh10{},
+	&listenerTh11{},
+	&listenerTh12{},
 	&listenerTh13{},
 	&listenerTh14{},
 	&listenerTh16{},

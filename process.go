@@ -2,58 +2,63 @@ package main
 
 import (
 	"errors"
-	"golang.org/x/sys/windows"
-	"log"
-	"os/exec"
-	"regexp"
-	"strconv"
 	"strings"
-	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
-// 根据进程名获取进程ID
-func getPidByProcessName(processName string) (int64, error) {
-	task := exec.Command("cmd", "/c", "wmic", "process", "get", "name,", "ProcessId", "|", "findstr", processName)
-	data, _ := task.CombinedOutput()
-	res := strings.Split(string(data), "\n")[0] //取第一行程序结果
-	ss := regexp.MustCompile(`\s+`).Split(res, -1)
-	if len(ss) < 2 {
-		return 0, errors.New("没有找到进程")
+var errProcessNotFound = errors.New("没有找到进程")
+var errModuleNotFound = errors.New("没有找到模块")
+
+// 根据进程名获取进程ID，使用 Windows 原生 API 而非 wmic 外部命令
+func getPidByProcessName(processName string) (uint32, error) {
+	snapshot, err := windows.CreateToolhelp32Snapshot(windows.TH32CS_SNAPPROCESS, 0)
+	if err != nil {
+		return 0, err
 	}
-	pidStr := ss[1]
-	return strconv.ParseInt(pidStr, 10, 64)
+	defer windows.CloseHandle(snapshot)
+
+	var entry windows.ProcessEntry32
+	entry.Size = uint32(unsafe.Sizeof(entry))
+
+	if err = windows.Process32First(snapshot, &entry); err != nil {
+		return 0, err
+	}
+	for {
+		name := windows.UTF16ToString(entry.ExeFile[:])
+		if strings.EqualFold(name, processName) {
+			return entry.ProcessID, nil
+		}
+		if err = windows.Process32Next(snapshot, &entry); err != nil {
+			break
+		}
+	}
+	return 0, errProcessNotFound
 }
 
 // 获取进程的句柄
 func getProcessHandle(pid uint32) (windows.Handle, error) {
-	return windows.OpenProcess(syscall.STANDARD_RIGHTS_ALL|0xFFFF, false, pid)
+	return windows.OpenProcess(windows.PROCESS_VM_READ|windows.PROCESS_QUERY_INFORMATION, false, pid)
 }
 
 // 获取模块基地址
 func getModuleBaseAddress(hand windows.Handle, processName string) (uintptr, error) {
-	hModel := [10000]windows.Handle{0}
+	var hModel [10000]windows.Handle
 	var num uint32
 	if err := windows.EnumProcessModules(hand, &hModel[0], uint32(len(hModel)), &num); err != nil {
 		return 0, err
 	}
 	for i := uint32(0); i < num; i++ {
-		tmp := [50]uint16{0}
+		var tmp [50]uint16
 		if err := windows.GetModuleBaseName(hand, hModel[i], &tmp[0], uint32(len(tmp))); err != nil {
-			log.Println(err)
 			continue
 		}
-		sb := strings.Builder{}
-		for _, v := range tmp {
-			if v != 0 {
-				sb.WriteByte(byte(v))
-			}
-		}
-		if strings.EqualFold(processName, sb.String()) {
+		if strings.EqualFold(processName, windows.UTF16ToString(tmp[:])) {
 			return uintptr(hModel[i]), nil
 		}
 	}
-	return 0, nil
+	return 0, errModuleNotFound
 }
 
 // 通过基址+指针链读取到指针地址的值

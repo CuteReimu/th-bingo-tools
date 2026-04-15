@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"golang.org/x/text/encoding/japanese"
 	"golang.org/x/text/transform"
 )
@@ -21,6 +24,8 @@ type listener interface {
 }
 
 var listeners = []listener{
+	&listenerTh06{},
+	&listenerTh07{},
 	&listenerTh10{},
 	&listenerTh11{},
 	&listenerTh12{},
@@ -29,6 +34,21 @@ var listeners = []listener{
 	&listenerTh16{},
 	&listenerTh17{},
 	&listenerTh18{},
+}
+
+// broadcast 将消息序列化并广播给所有 WebSocket 订阅者
+func broadcast(message *Message) {
+	buf, _ := json.Marshal(message)
+	fmt.Println(string(buf))
+	chanMap.Range(func(_, value any) bool {
+		ch := value.(chan []byte)
+		select {
+		case ch <- buf:
+		default:
+			// 通道已满，丢弃消息避免阻塞
+		}
+		return true
+	})
 }
 
 func formatRank(rank uint32) string {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
+
+	"golang.org/x/sys/windows"
 )
 
 type listenerTh10 struct {
@@ -18,11 +18,12 @@ func (l *listenerTh10) Loop() {
 		l.started = false
 		return
 	}
-	hand, err := getProcessHandle(uint32(pid))
+	hand, err := getProcessHandle(pid)
 	if err != nil {
 		l.started = false
 		return
 	}
+	defer windows.CloseHandle(hand)
 	baseAddress, err := getModuleBaseAddress(hand, "th10.exe")
 	if err != nil {
 		l.started = false
@@ -71,12 +72,7 @@ func (l *listenerTh10) Loop() {
 		}
 	}
 	if message != nil {
-		buf, _ := json.Marshal(message)
-		fmt.Println(string(buf))
-		chanMap.Range(func(_, value any) bool {
-			value.(chan []byte) <- buf
-			return true
-		})
+		broadcast(message)
 	}
 }
 

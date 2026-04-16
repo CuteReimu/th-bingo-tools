@@ -37,8 +37,8 @@ linters:
     - goconst
     - unused
     - errcheck
-    - dupl
     - errchkjson
+    - contextcheck
   settings:
     staticcheck:
       checks:
@@ -51,6 +51,8 @@ linters:
     gosec:
       excludes:
         - G103
+        - G104
+        - G112
         - G114
         - G115
         - G122

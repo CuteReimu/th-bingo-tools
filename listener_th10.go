@@ -1,101 +1,15 @@
 package main
 
-import (
-	"bytes"
-
-	"golang.org/x/sys/windows"
-)
-
-type listenerTh10 struct {
-	started      bool
-	roleInfos    [6]th10RoleInfo
-	oldRoleInfos [6]th10RoleInfo
-}
-
-var th10ExeNames = append([]string{"th10.exe", "th10e.exe"}, chinesePatchExeNames...)
-
-func (l *listenerTh10) Loop() {
-	_, _, hand, baseAddress, err := findGameProcess("th10", th10ExeNames)
-	if err != nil {
-		l.started = false
-		return
-	}
-	defer windows.CloseHandle(hand)
-	l.oldRoleInfos = l.roleInfos
-	for i := range l.roleInfos {
-		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0x7783C, 20+0x437C*uintptr(i))
-		_ = readMemory(&l.roleInfos[i].spells, hand, baseAddress, 0x7783C, 0x5A4+0x437C*uintptr(i))
-	}
-	if !l.started {
-		l.started = true
-		return
-	}
-	l.started = true
-	var message *Message
-	for i, role := range l.roleInfos {
-		roleName := role.formatRoleId()
-		for j, info := range role.spells {
-			oldInfo := l.oldRoleInfos[i].spells[j]
-			gameModeGet, gameModeTotal := oldInfo.gameModeGet, oldInfo.gameModeTotal
-			gameModeGet2, gameModeTotal2 := info.gameModeGet, info.gameModeTotal
-			msg := &Message{
-				Game: 10,
-				Id:   info.id + 1,
-				Name: formatName(bytes.TrimRight(info.name[:], "\000")),
-				Role: roleName,
-				Rank: formatRank(info.rank),
-			}
-			if gameModeTotal2 > gameModeTotal {
-				if message != nil || gameModeTotal2 != gameModeTotal+1 {
-					return // 同一时间只可能改变一张符卡
-				}
-				msg.Event = 0
-				msg.Mode = 0
-				message = msg
-			}
-			if gameModeGet2 > gameModeGet {
-				if message != nil || gameModeGet2 != gameModeGet+1 {
-					return // 同一时间只可能改变一张符卡
-				}
-				msg.Event = 1
-				msg.Mode = 0
-				message = msg
-			}
-		}
-	}
-	if message != nil {
-		broadcast(message)
-	}
-}
-
-type th10RoleInfo struct {
-	id     uint32
-	spells [110]th10SpellInfo
-}
-
-func (info *th10RoleInfo) formatRoleId() string {
-	switch info.id {
-	case 0:
-		return "ReimuA"
-	case 1:
-		return "ReimuB"
-	case 2:
-		return "ReimuC"
-	case 3:
-		return "MarisaA"
-	case 4:
-		return "MarisaB"
-	case 5:
-		return "MarisaC"
-	default:
-		return "Unknown"
-	}
-}
-
-type th10SpellInfo struct {
-	name          [0x80]byte
-	gameModeGet   uint32
-	gameModeTotal uint32
-	id            uint32
-	rank          uint32
+// TH10 (东方风神录)
+// 6 个角色，每角色 110 张符卡，无符卡练习
+func newTH10Listener() *roleSpellListener[simpleSpellInfo] {
+	return newRoleSpellListener[simpleSpellInfo](10, makeExeNames("th10.exe", "th10e.exe"), roleSpellConfig{
+		BasePointerOffset: 0x7783C,
+		RoleIDOffset:      20,
+		SpellsOffset:      0x5A4,
+		RoleStride:        0x437C,
+		RoleCount:         6,
+		SpellCount:        110,
+		RoleNames:         []string{"ReimuA", "ReimuB", "ReimuC", "MarisaA", "MarisaB", "MarisaC"},
+	}, simpleAccessor)
 }

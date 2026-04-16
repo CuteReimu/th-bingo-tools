@@ -6,25 +6,39 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// th06 (东方红魔乡) 的符卡数据结构与 th10+ 不同：
-// - 不是按角色分组，而是全局 64 张符卡的统一数组
-// - 使用 uint16 计数
-// - 没有符卡练习模式
-// GameManager 位于绝对地址 0x69BCA0（基于 thprac 的 thprac_th06.h）
-// catk[64] 在 GameManager + 0x30
-// difficulty 在 GameManager + 0x10
-// character 在 GameManager + 0x181D
-// shotType 在 GameManager + 0x181E
-
+// TH06 (东方红魔乡) 内存布局
+// 基于 thprac 的 thprac_th06.h：
+// - GameManager 位于绝对地址 0x69BCA0
+// - catk[64] 在 GameManager + 0x30（偏移 0x2C 为 isTimeStopped，前面是其他字段）
+// - difficulty 在 GameManager + 0x10
+// - character 在 GameManager + 0x181D
+// - shotType 在 GameManager + 0x181E
 const (
-	th06GameManagerOffset = 0x29BCA0 // 0x69BCA0 - 0x400000
-	th06CatkOffset        = th06GameManagerOffset + 0x30
-	th06DifficultyOffset  = th06GameManagerOffset + 0x10
-	th06CharacterOffset   = th06GameManagerOffset + 0x181D
-	th06ShotTypeOffset    = th06GameManagerOffset + 0x181E
+	th06BaseOffset      = 0x29BCA0 // 0x69BCA0 - 0x400000
+	th06CatkOffset      = th06BaseOffset + 0x30
+	th06DifficultyOff   = th06BaseOffset + 0x10
+	th06CharacterOff    = th06BaseOffset + 0x181D
+	th06ShotTypeOff     = th06BaseOffset + 0x181E
 )
 
-type listenerTh06 struct {
+// th06SpellInfo 对应 thprac_th06.h 中的 Catk 结构体（0x40 = 64 字节）
+type th06SpellInfo struct {
+	_base        [10]byte // Th6k base
+	_pad0        [2]byte  // padding for alignment
+	CaptureScore int32
+	Idx          uint16
+	NameCsum     uint8
+	CharShot     uint8
+	_unk14       uint32
+	Name         [32]byte
+	_unk38       uint32
+	NumAttempts  uint16
+	NumSuccess   uint16
+}
+
+var th06RoleNames = []string{"ReimuA", "ReimuB", "MarisaA", "MarisaB"}
+
+type listenerTH06 struct {
 	started    bool
 	spells     [64]th06SpellInfo
 	oldSpells  [64]th06SpellInfo
@@ -33,49 +47,53 @@ type listenerTh06 struct {
 	shotType   uint8
 }
 
-var th06ExeNames = append([]string{"th06.exe", "th06e.exe", "東方紅魔郷.exe"}, chinesePatchExeNames...)
+func newTH06Listener() *listenerTH06 {
+	return &listenerTH06{}
+}
 
-func (l *listenerTh06) Loop() {
-	_, _, hand, baseAddress, err := findGameProcess("th06", th06ExeNames)
+func (l *listenerTH06) Loop() {
+	result, err := findGameProcess("th06", makeExeNames("th06.exe", "th06e.exe", "東方紅魔郷.exe"))
 	if err != nil {
 		l.started = false
 		return
 	}
-	defer windows.CloseHandle(hand)
+	defer windows.CloseHandle(result.Handle)
+
 	l.oldSpells = l.spells
-	_ = readMemory(&l.spells, hand, baseAddress, th06CatkOffset)
-	_ = readMemory(&l.difficulty, hand, baseAddress, th06DifficultyOffset)
-	_ = readMemory(&l.character, hand, baseAddress, th06CharacterOffset)
-	_ = readMemory(&l.shotType, hand, baseAddress, th06ShotTypeOffset)
+	readMemory(&l.spells, result.Handle, result.BaseAddress, th06CatkOffset)
+	readMemory(&l.difficulty, result.Handle, result.BaseAddress, th06DifficultyOff)
+	readMemory(&l.character, result.Handle, result.BaseAddress, th06CharacterOff)
+	readMemory(&l.shotType, result.Handle, result.BaseAddress, th06ShotTypeOff)
+
 	if !l.started {
 		l.started = true
 		return
 	}
-	l.started = true
+
 	var message *Message
 	for i, info := range l.spells {
-		oldInfo := l.oldSpells[i]
+		old := l.oldSpells[i]
 		msg := &Message{
 			Game: 6,
-			Id:   uint32(info.idx) + 1,
-			Name: formatName(bytes.TrimRight(info.name[:], "\000")),
-			Role: th06FormatRole(l.character, l.shotType),
+			ID:   uint32(info.Idx) + 1,
+			Name: formatName(bytes.TrimRight(info.Name[:], "\000")),
+			Role: l.formatRole(),
 			Rank: formatRank(l.difficulty),
 		}
-		if info.numAttempts > oldInfo.numAttempts {
-			if message != nil || info.numAttempts != oldInfo.numAttempts+1 {
+		if info.NumAttempts > old.NumAttempts {
+			if message != nil || info.NumAttempts != old.NumAttempts+1 {
 				return // 同一时间只可能改变一张符卡
 			}
-			msg.Event = 0
-			msg.Mode = 0
+			msg.Event = EventAttempt
+			msg.Mode = ModeGame
 			message = msg
 		}
-		if info.numSuccess > oldInfo.numSuccess {
-			if message != nil || info.numSuccess != oldInfo.numSuccess+1 {
-				return // 同一时间只可能改变一张符卡
+		if info.NumSuccess > old.NumSuccess {
+			if message != nil || info.NumSuccess != old.NumSuccess+1 {
+				return
 			}
-			msg.Event = 1
-			msg.Mode = 0
+			msg.Event = EventCapture
+			msg.Mode = ModeGame
 			message = msg
 		}
 	}
@@ -84,32 +102,10 @@ func (l *listenerTh06) Loop() {
 	}
 }
 
-func th06FormatRole(character, shotType uint8) string {
-	switch character*2 + shotType {
-	case 0:
-		return "ReimuA"
-	case 1:
-		return "ReimuB"
-	case 2:
-		return "MarisaA"
-	case 3:
-		return "MarisaB"
-	default:
-		return "Unknown"
+func (l *listenerTH06) formatRole() string {
+	idx := int(l.character)*2 + int(l.shotType)
+	if idx >= 0 && idx < len(th06RoleNames) {
+		return th06RoleNames[idx]
 	}
-}
-
-// th06SpellInfo 对应 thprac_th06.h 中的 Catk 结构体（0x40 = 64 字节）
-type th06SpellInfo struct {
-	_base        [10]byte // Th6k base
-	_pad0        [2]byte  // padding for alignment
-	captureScore int32
-	idx          uint16
-	nameCsum     uint8
-	charShot     uint8
-	_unk14       uint32
-	name         [32]byte
-	_unk38       uint32
-	numAttempts  uint16
-	numSuccess   uint16
+	return "Unknown"
 }

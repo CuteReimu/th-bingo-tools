@@ -14,16 +14,16 @@ const (
 // th08SpellInfo 对应 th08 的 ScorefileCatk 结构体（0xA8 = 168 字节）
 // 与 th07 类似但有 12 种机体
 type th08SpellInfo struct {
-	Header             [0x0C]byte  // ScorefileChapterHeader
-	ShottypeMaxBonuses [12]uint32  // +0x0C
-	BestMaxBonus       uint32      // +0x3C
-	SpellNumber        uint16      // +0x40
-	NameHash           uint8       // +0x42
-	SpellName          [0x31]byte  // +0x43
-	ShottypeAttempts   [12]uint16  // +0x74
-	TotalAttempts      uint16      // +0x8C
-	ShottypeCaptures   [12]uint16  // +0x8E
-	TotalCaptures      uint16      // +0xA6
+	Header             [0x0C]byte // ScorefileChapterHeader
+	ShottypeMaxBonuses [12]uint32 // +0x0C
+	BestMaxBonus       uint32     // +0x3C
+	SpellNumber        uint16     // +0x40
+	NameHash           uint8      // +0x42
+	SpellName          [0x31]byte // +0x43
+	ShottypeAttempts   [12]uint16 // +0x74
+	TotalAttempts      uint16     // +0x8C
+	ShottypeCaptures   [12]uint16 // +0x8E
+	TotalCaptures      uint16     // +0xA6
 }
 
 var th08RoleNames = []string{

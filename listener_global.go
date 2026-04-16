@@ -40,11 +40,11 @@ type globalCardListener[S any] struct {
 
 func newGlobalCardListener[S any](cfg globalCardConfig, acc globalCardAccessor[S]) *globalCardListener[S] {
 	return &globalCardListener[S]{
-		config:   cfg,
-		accessor: acc,
-		cards:    make([]S, cfg.CardCount),
-		oldCards: make([]S, cfg.CardCount),
-		cards2:   make([]S, cfg.CardCount),
+		config:    cfg,
+		accessor:  acc,
+		cards:     make([]S, cfg.CardCount),
+		oldCards:  make([]S, cfg.CardCount),
+		cards2:    make([]S, cfg.CardCount),
 		oldCards2: make([]S, cfg.CardCount),
 	}
 }

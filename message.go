@@ -23,4 +23,3 @@ type Message struct {
 	Rank  string `json:"rank"`
 	Score uint64 `json:"score,omitempty"`
 }
-

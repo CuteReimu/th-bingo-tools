@@ -31,13 +31,13 @@ type modernSpellInfo struct {
 	Score              uint32 // 实际分数 = Score * 10
 }
 
-func (s *modernSpellInfo) nameBytes() []byte            { return s.Name[:] }
-func (s *modernSpellInfo) getID() uint32                { return s.ID }
-func (s *modernSpellInfo) getRank() uint32              { return s.Rank }
-func (s *modernSpellInfo) getScore() uint32             { return s.Score }
-func (s *modernSpellInfo) getGameModeGet() uint32       { return s.GameModeGet }
-func (s *modernSpellInfo) getGameModeTotal() uint32     { return s.GameModeTotal }
-func (s *modernSpellInfo) getSpellPracticeGet() uint32  { return s.SpellPracticeGet }
+func (s *modernSpellInfo) nameBytes() []byte             { return s.Name[:] }
+func (s *modernSpellInfo) getID() uint32                 { return s.ID }
+func (s *modernSpellInfo) getRank() uint32               { return s.Rank }
+func (s *modernSpellInfo) getScore() uint32              { return s.Score }
+func (s *modernSpellInfo) getGameModeGet() uint32        { return s.GameModeGet }
+func (s *modernSpellInfo) getGameModeTotal() uint32      { return s.GameModeTotal }
+func (s *modernSpellInfo) getSpellPracticeGet() uint32   { return s.SpellPracticeGet }
 func (s *modernSpellInfo) getSpellPracticeTotal() uint32 { return s.SpellPracticeTotal }
 
 // modernSpellInfoWide 是 TH18 的符卡数据结构（name 字段为 0xC0 字节）
@@ -52,13 +52,13 @@ type modernSpellInfoWide struct {
 	Score              uint32
 }
 
-func (s *modernSpellInfoWide) nameBytes() []byte            { return s.Name[:] }
-func (s *modernSpellInfoWide) getID() uint32                { return s.ID }
-func (s *modernSpellInfoWide) getRank() uint32              { return s.Rank }
-func (s *modernSpellInfoWide) getScore() uint32             { return s.Score }
-func (s *modernSpellInfoWide) getGameModeGet() uint32       { return s.GameModeGet }
-func (s *modernSpellInfoWide) getGameModeTotal() uint32     { return s.GameModeTotal }
-func (s *modernSpellInfoWide) getSpellPracticeGet() uint32  { return s.SpellPracticeGet }
+func (s *modernSpellInfoWide) nameBytes() []byte             { return s.Name[:] }
+func (s *modernSpellInfoWide) getID() uint32                 { return s.ID }
+func (s *modernSpellInfoWide) getRank() uint32               { return s.Rank }
+func (s *modernSpellInfoWide) getScore() uint32              { return s.Score }
+func (s *modernSpellInfoWide) getGameModeGet() uint32        { return s.GameModeGet }
+func (s *modernSpellInfoWide) getGameModeTotal() uint32      { return s.GameModeTotal }
+func (s *modernSpellInfoWide) getSpellPracticeGet() uint32   { return s.SpellPracticeGet }
 func (s *modernSpellInfoWide) getSpellPracticeTotal() uint32 { return s.SpellPracticeTotal }
 
 // simpleSpellInfo 是 TH10-TH12 的符卡数据结构（无符卡练习模式）

@@ -14,11 +14,11 @@ import (
 // - character 在 GameManager + 0x181D
 // - shotType 在 GameManager + 0x181E
 const (
-	th06BaseOffset      = 0x29BCA0 // 0x69BCA0 - 0x400000
-	th06CatkOffset      = th06BaseOffset + 0x30
-	th06DifficultyOff   = th06BaseOffset + 0x10
-	th06CharacterOff    = th06BaseOffset + 0x181D
-	th06ShotTypeOff     = th06BaseOffset + 0x181E
+	th06BaseOffset    = 0x29BCA0 // 0x69BCA0 - 0x400000
+	th06CatkOffset    = th06BaseOffset + 0x30
+	th06DifficultyOff = th06BaseOffset + 0x10
+	th06CharacterOff  = th06BaseOffset + 0x181D
+	th06ShotTypeOff   = th06BaseOffset + 0x181E
 )
 
 // th06SpellInfo 对应 thprac_th06.h 中的 Catk 结构体（0x40 = 64 字节）

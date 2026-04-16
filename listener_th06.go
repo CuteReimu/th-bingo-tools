@@ -33,23 +33,15 @@ type listenerTh06 struct {
 	shotType   uint8
 }
 
+var th06ExeNames = append([]string{"th06.exe", "th06e.exe", "東方紅魔郷.exe"}, chinesePatchExeNames...)
+
 func (l *listenerTh06) Loop() {
-	pid, err := getPidByProcessName("th06.exe")
-	if err != nil {
-		l.started = false
-		return
-	}
-	hand, err := getProcessHandle(pid)
+	_, _, hand, baseAddress, err := findGameProcess("th06", th06ExeNames)
 	if err != nil {
 		l.started = false
 		return
 	}
 	defer windows.CloseHandle(hand)
-	baseAddress, err := getModuleBaseAddress(hand, "th06.exe")
-	if err != nil {
-		l.started = false
-		return
-	}
 	l.oldSpells = l.spells
 	_ = readMemory(&l.spells, hand, baseAddress, th06CatkOffset)
 	_ = readMemory(&l.difficulty, hand, baseAddress, th06DifficultyOffset)

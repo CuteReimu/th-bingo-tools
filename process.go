@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"log/slog"
 	"strings"
+	"sync"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -10,6 +12,40 @@ import (
 
 var errProcessNotFound = errors.New("没有找到进程")
 var errModuleNotFound = errors.New("没有找到模块")
+
+// gameProcessState 用于跟踪每个游戏的进程检测状态，避免重复打印日志
+var gameProcessState sync.Map
+
+// findGameProcess 尝试通过多个可能的进程名查找游戏进程，返回 pid、匹配的进程名和句柄
+// 如果找到进程，会打日志；如果之前找到过但现在找不到了，也会打日志
+func findGameProcess(gameId string, names []string) (pid uint32, matchedName string, handle windows.Handle, baseAddress uintptr, err error) {
+	for _, name := range names {
+		pid, err = getPidByProcessName(name)
+		if err != nil {
+			continue
+		}
+		handle, err = getProcessHandle(pid)
+		if err != nil {
+			continue
+		}
+		baseAddress, err = getModuleBaseAddress(handle, name)
+		if err != nil {
+			windows.CloseHandle(handle)
+			continue
+		}
+		matchedName = name
+		// 检测到进程时打日志（仅首次）
+		if _, loaded := gameProcessState.LoadOrStore(gameId, true); !loaded {
+			slog.Info("检测到游戏进程", "game", gameId, "exe", name, "pid", pid)
+		}
+		return pid, matchedName, handle, baseAddress, nil
+	}
+	// 如果之前检测到过，现在找不到了
+	if _, loaded := gameProcessState.LoadAndDelete(gameId); loaded {
+		slog.Info("游戏进程已关闭", "game", gameId)
+	}
+	return 0, "", 0, 0, errProcessNotFound
+}
 
 // 根据进程名获取进程ID，使用 Windows 原生 API 而非 wmic 外部命令
 func getPidByProcessName(processName string) (uint32, error) {

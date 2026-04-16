@@ -34,23 +34,15 @@ type listenerTh07 struct {
 	fullShottype uint8
 }
 
+var th07ExeNames = append([]string{"th07.exe", "th07e.exe"}, chinesePatchExeNames...)
+
 func (l *listenerTh07) Loop() {
-	pid, err := getPidByProcessName("th07.exe")
-	if err != nil {
-		l.started = false
-		return
-	}
-	hand, err := getProcessHandle(pid)
+	_, _, hand, baseAddress, err := findGameProcess("th07", th07ExeNames)
 	if err != nil {
 		l.started = false
 		return
 	}
 	defer windows.CloseHandle(hand)
-	baseAddress, err := getModuleBaseAddress(hand, "th07.exe")
-	if err != nil {
-		l.started = false
-		return
-	}
 	l.oldCardData = l.cardData
 	l.oldCardData2 = l.cardData2
 	_ = readMemory(&l.cardData, hand, baseAddress, th07CardDataOffset)

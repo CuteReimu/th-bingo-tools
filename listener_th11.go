@@ -12,23 +12,15 @@ type listenerTh11 struct {
 	oldRoleInfos [6]th11RoleInfo
 }
 
+var th11ExeNames = append([]string{"th11.exe", "th11e.exe"}, chinesePatchExeNames...)
+
 func (l *listenerTh11) Loop() {
-	pid, err := getPidByProcessName("th11.exe")
-	if err != nil {
-		l.started = false
-		return
-	}
-	hand, err := getProcessHandle(pid)
+	_, _, hand, baseAddress, err := findGameProcess("th11", th11ExeNames)
 	if err != nil {
 		l.started = false
 		return
 	}
 	defer windows.CloseHandle(hand)
-	baseAddress, err := getModuleBaseAddress(hand, "th11.exe")
-	if err != nil {
-		l.started = false
-		return
-	}
 	l.oldRoleInfos = l.roleInfos
 	for i := range l.roleInfos {
 		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0xA8EBC, 20+0x68D4*uintptr(i))

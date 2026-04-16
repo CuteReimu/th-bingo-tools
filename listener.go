@@ -26,11 +26,13 @@ type listener interface {
 var listeners = []listener{
 	&listenerTh06{},
 	&listenerTh07{},
+	&listenerTh08{},
 	&listenerTh10{},
 	&listenerTh11{},
 	&listenerTh12{},
 	&listenerTh13{},
 	&listenerTh14{},
+	&listenerTh15{},
 	&listenerTh16{},
 	&listenerTh17{},
 	&listenerTh18{},
@@ -71,3 +73,6 @@ func formatName(s []byte) string {
 	s2, _, _ := transform.String(japanese.ShiftJIS.NewDecoder(), string(s))
 	return s2
 }
+
+// chinesePatchExeNames 是中文补丁常用的可执行文件名
+var chinesePatchExeNames = []string{"custom.exe", "custom_cn.exe", "custom_chs.exe", "custom_cht.exe", "custom_c.exe"}

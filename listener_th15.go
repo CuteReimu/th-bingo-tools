@@ -6,16 +6,16 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-type listenerTh17 struct {
+type listenerTh15 struct {
 	started      bool
-	roleInfos    [9]th17RoleInfo
-	oldRoleInfos [9]th17RoleInfo
+	roleInfos    [4]th15RoleInfo
+	oldRoleInfos [4]th15RoleInfo
 }
 
-var th17ExeNames = append([]string{"th17.exe", "th17e.exe"}, chinesePatchExeNames...)
+var th15ExeNames = append([]string{"th15.exe", "th15e.exe"}, chinesePatchExeNames...)
 
-func (l *listenerTh17) Loop() {
-	_, _, hand, baseAddress, err := findGameProcess("th17", th17ExeNames)
+func (l *listenerTh15) Loop() {
+	_, _, hand, baseAddress, err := findGameProcess("th15", th15ExeNames)
 	if err != nil {
 		l.started = false
 		return
@@ -23,8 +23,8 @@ func (l *listenerTh17) Loop() {
 	defer windows.CloseHandle(hand)
 	l.oldRoleInfos = l.roleInfos
 	for i := range l.roleInfos {
-		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0xB77DC, 20+0x4820*uintptr(i))
-		_ = readMemory(&l.roleInfos[i].spells, hand, baseAddress, 0xB77DC, 0x8D8+0x4820*uintptr(i))
+		_ = readMemory(&l.roleInfos[i].id, hand, baseAddress, 0xE9BC0, 20+0x5318*uintptr(i))
+		_ = readMemory(&l.roleInfos[i].spells, hand, baseAddress, 0xE9BC0, 0x8D8+0x5318*uintptr(i))
 	}
 	if !l.started {
 		l.started = true
@@ -39,7 +39,7 @@ func (l *listenerTh17) Loop() {
 			spellPracticeGet, spellPracticeTotal, gameModeGet, gameModeTotal := oldInfo.spellPracticeGet, oldInfo.spellPracticeTotal, oldInfo.gameModeGet, oldInfo.gameModeTotal
 			spellPracticeGet2, spellPracticeTotal2, gameModeGet2, gameModeTotal2 := info.spellPracticeGet, info.spellPracticeTotal, info.gameModeGet, info.gameModeTotal
 			msg := &Message{
-				Game:  17,
+				Game:  15,
 				Id:    info.id + 1,
 				Name:  formatName(bytes.TrimRight(info.name[:], "\000")),
 				Role:  roleName,
@@ -85,37 +85,27 @@ func (l *listenerTh17) Loop() {
 	}
 }
 
-type th17RoleInfo struct {
+type th15RoleInfo struct {
 	id     uint32
-	spells [101]th17SpellInfo
+	spells [107]th15SpellInfo
 }
 
-func (info *th17RoleInfo) formatRoleId() string {
+func (info *th15RoleInfo) formatRoleId() string {
 	switch info.id {
 	case 0:
-		return "ReimuW"
+		return "Reimu"
 	case 1:
-		return "ReimuO"
+		return "Marisa"
 	case 2:
-		return "ReimuE"
+		return "Sanae"
 	case 3:
-		return "MarisaW"
-	case 4:
-		return "MarisaO"
-	case 5:
-		return "MarisaE"
-	case 6:
-		return "YoumuW"
-	case 7:
-		return "YoumuO"
-	case 8:
-		return "YoumuE"
+		return "Reisen"
 	default:
 		return "Unknown"
 	}
 }
 
-type th17SpellInfo struct {
+type th15SpellInfo struct {
 	name               [0x80]byte
 	gameModeGet        uint32
 	spellPracticeGet   uint32

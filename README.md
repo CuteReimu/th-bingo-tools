@@ -97,6 +97,6 @@ go build -o th-bingo-tools.exe
 
 **th10+** 的例子：
 
-https://github.com/CuteReimu/th-bingo-tools/blob/b1fb048d9386b1d5f6eb1f46a533ec7b3d68c88f/listener_th10.go#L32-L35
+https://github.com/CuteReimu/th-bingo-tools/blob/5725a77cd77025b3ad1f8a8d956b382be9a4db58/listener_th10.go#L4-L15
 
 上述代码的意思是：从进程的基址开始，往后`0x7783C`个字节的位置，存放了指向角色数据结构体的指针，我们利用这个指针找到这个结构体后，再向后移动`20`个字节的位置，就是第一个角色（灵梦A）的id；而往后`0x5A4`个字节的位置，就是第一个角色的符卡数据的结构体的起始地址。每个角色的数据距离上一个角色的数据`0x437C`个字节的距离。用CE找到这些地址之后，我们把内容读出来即可。

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"sync"
@@ -31,7 +31,7 @@ func main() {
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Printf("%+v\n", r)
+					slog.Error("panic recovered", "error", r)
 				}
 			}()
 			for {
@@ -46,11 +46,11 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Println(err)
+			slog.Error("websocker upgrade failed", "error", err)
 			return
 		}
-		id := c.RemoteAddr().String()
-		log.Println("connected:", id)
+		id := c.RemoteAddr()
+		slog.Info("connected", "remote_addr", id)
 		ch := make(chan []byte, 64)
 		chanMap.Store(id, ch)
 		defer func() {
@@ -60,12 +60,12 @@ func main() {
 		for {
 			err = c.WriteMessage(websocket.TextMessage, <-ch)
 			if err != nil {
-				log.Println("write:", err)
+				slog.Error("websocket write failed", "error", err)
 				break
 			}
 		}
 	})
 	if err := http.ListenAndServe("127.0.0.1:"+strconv.Itoa(*port), nil); err != nil {
-		log.Println(err)
+		slog.Error("listen failed", "error", err)
 	}
 }

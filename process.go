@@ -49,7 +49,7 @@ func getModuleBaseAddress(hand windows.Handle, processName string) (uintptr, err
 	if err := windows.EnumProcessModules(hand, &hModel[0], uint32(len(hModel)), &num); err != nil {
 		return 0, err
 	}
-	for i := uint32(0); i < num; i++ {
+	for i := range num {
 		var tmp [50]uint16
 		if err := windows.GetModuleBaseName(hand, hModel[i], &tmp[0], uint32(len(tmp))); err != nil {
 			continue

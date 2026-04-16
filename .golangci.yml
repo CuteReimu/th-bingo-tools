@@ -1,0 +1,98 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - noctx
+    - wsl
+    - wsl_v5
+    - embeddedstructfieldcheck
+    - noinlineerr
+    - varnamelen
+    - gocognit
+    - funlen
+    - cyclop
+    - nestif
+    - mnd
+    - gochecknoglobals
+    - exhaustruct
+    - wrapcheck
+    - testpackage
+    - tagliatelle
+    - nlreturn
+    - depguard
+    - err113
+    - forbidigo
+    - errname
+    - forcetypeassert
+    - gochecknoinits
+    - gocritic
+    - gocyclo
+    - godot
+    - gosmopolitan
+    - lll
+    - paralleltest
+    - unparam
+    - maintidx
+    - nonamedreturns
+    - goconst
+    - unused
+    - errcheck
+    - dupl
+    - errchkjson
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - '-ST1000'
+        - '-ST1001'
+        - '-ST1003'
+        - '-QF1001'
+        - '-QF1003'
+    gosec:
+      excludes:
+        - G103
+        - G114
+        - G115
+        - G122
+        - G204
+        - G301
+        - G304
+        - G306
+        - G404
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: dot-imports
+          disabled: true
+        - name: add-constant
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: cognitive-complexity
+          arguments: [70]
+        - name: cyclomatic
+          arguments: [30]
+        - name: max-control-nesting
+          arguments: [5]
+        - name: function-length
+          arguments: [200, 0]
+        - name: exported
+          arguments: ["disable-checks-on-methods"]
+        - name: function-result-limit
+          arguments: [4]
+        - name: unhandled-error
+          arguments:
+            - "^strings\\.Builder\\.Write(?:Byte|Rune|String)?$"
+            - "^fmt\\.Print(?:f|ln)?$"
+        - name: flag-parameter
+          disabled: true
+        - name: unchecked-type-assertion
+          disabled: true
+        - name: nested-structs
+          disabled: true
+        - name: var-naming
+          disabled: true
+        - name: package-comments
+          disabled: true
+run:
+  timeout: 3m
